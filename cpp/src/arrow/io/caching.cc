@@ -203,7 +203,9 @@ struct ReadRangeCache::Impl {
     if (it != entries.end() && it->range.Contains(range)) {
       auto fut = MaybeRead(&*it);
       ARROW_ASSIGN_OR_RAISE(auto buf, fut.result());
-      return SliceBuffer(std::move(buf), range.offset - it->range.offset, range.length);
+      auto  ret =  SliceBuffer(std::move(buf), range.offset - it->range.offset, range.length);
+      entries.erase(entries.begin(), it); // free already read part
+      return ret;
     }
     return Status::Invalid("ReadRangeCache did not find matching cache entry");
   }
